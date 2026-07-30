@@ -1,0 +1,81 @@
+package com.example.weatherappcompose.viewmodel
+
+import android.util.Log
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import com.example.weatherappcompose.buildUrlForWeather
+import com.example.weatherappcompose.model.FiveDayForecastResponse
+import com.google.gson.Gson
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+
+sealed interface WeatherUiState {
+    data object Loading : WeatherUiState
+    data class Success(val forecast: FiveDayForecastResponse) :
+        WeatherUiState {
+        var dailyForecasts = forecast.DailyForecasts
+    }
+    data class Error(val errorMessage: String) :
+        WeatherUiState
+}
+
+class WeatherViewModel : ViewModel() {
+    private val _weatherUiState = MutableStateFlow<WeatherUiState>(WeatherUiState.Loading)
+    val weatherUiState: StateFlow<WeatherUiState> = _weatherUiState.asStateFlow()
+
+    init {
+        loadWeatherData()
+    }
+
+    private fun loadWeatherData() {
+        viewModelScope.launch {
+            _weatherUiState.value = WeatherUiState.Loading
+
+            try {
+                val gson = Gson()
+                val weatherJson = async { getWeatherDataJson() }.await()
+
+                if (weatherJson.isEmpty()) {
+                    throw Exception("Failed to fetch weather data")
+                }
+
+                val fiveDayForecast: Deferred<FiveDayForecastResponse> = async {gson.fromJson<FiveDayForecastResponse>(weatherJson,
+                    FiveDayForecastResponse::class.java)}
+
+                _weatherUiState.value = WeatherUiState.Success(fiveDayForecast.await())
+
+                Log.i("WeatherViewModel", "Success: Fetched weather data")
+            } catch (e: Exception) {
+                _weatherUiState.value = WeatherUiState.Error("Failed to load weather data")
+
+                Log.e("WeatherViewModel", "Failure: ${e.toString()}")
+            }
+        }
+    }
+
+    private suspend fun getWeatherDataJson() : String {
+        try {
+            return withContext(Dispatchers.IO) {
+                buildUrlForWeather()?.readText() ?: ""
+            }
+        } catch (e: Exception) {
+            Log.e("WeatherViewModel", "Failure: ${e.toString()}")
+            return ""
+        }
+    }
+
+    class Factory(
+    ) : ViewModelProvider.Factory {
+        override fun <T: ViewModel> create(modelClass: Class<T>) : T {
+            return WeatherViewModel() as T
+        }
+    }
+}
