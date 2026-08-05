@@ -17,19 +17,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
-sealed interface WeatherUiState {
-    data object Loading : WeatherUiState
+sealed interface WeatherUiStateDeprecated {
+    data object Loading : WeatherUiStateDeprecated
     data class Success(val forecast: FiveDayForecastResponse) :
-        WeatherUiState {
+        WeatherUiStateDeprecated {
         var dailyForecasts = forecast.DailyForecasts
     }
     data class Error(val errorMessage: String) :
-        WeatherUiState
+        WeatherUiStateDeprecated
 }
 
 class WeatherViewModel : ViewModel() {
-    private val _weatherUiState = MutableStateFlow<WeatherUiState>(WeatherUiState.Loading)
-    val weatherUiState: StateFlow<WeatherUiState> = _weatherUiState.asStateFlow()
+    private val _weatherUiState = MutableStateFlow<WeatherUiStateDeprecated>(WeatherUiStateDeprecated.Loading)
+    val weatherUiState: StateFlow<WeatherUiStateDeprecated> = _weatherUiState.asStateFlow()
 
     init {
         loadWeatherData()
@@ -37,7 +37,7 @@ class WeatherViewModel : ViewModel() {
 
     private fun loadWeatherData() {
         viewModelScope.launch {
-            _weatherUiState.value = WeatherUiState.Loading
+            _weatherUiState.value = WeatherUiStateDeprecated.Loading
 
             try {
                 val gson = Gson()
@@ -50,11 +50,11 @@ class WeatherViewModel : ViewModel() {
                 val fiveDayForecast: Deferred<FiveDayForecastResponse> = async {gson.fromJson<FiveDayForecastResponse>(weatherJson,
                     FiveDayForecastResponse::class.java)}
 
-                _weatherUiState.value = WeatherUiState.Success(fiveDayForecast.await())
+                _weatherUiState.value = WeatherUiStateDeprecated.Success(fiveDayForecast.await())
 
                 Log.i("WeatherViewModel", "Success: Fetched weather data")
             } catch (e: Exception) {
-                _weatherUiState.value = WeatherUiState.Error("Failed to load weather data")
+                _weatherUiState.value = WeatherUiStateDeprecated.Error("Failed to load weather data")
 
                 Log.e("WeatherViewModel", "Failure: ${e.toString()}")
             }

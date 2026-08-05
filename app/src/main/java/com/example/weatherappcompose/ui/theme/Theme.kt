@@ -33,6 +33,22 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+val CustomColourScheme = lightColorScheme(
+    primary = Primary,
+    onPrimary = OnPrimary,
+    primaryContainer = PrimaryFixedDim,
+    background = Background,
+    onBackground = OnBackground,
+    surface = Surface,
+    surfaceVariant = SurfaceContainer,
+    surfaceContainerLowest = SurfaceContainerBottom,
+    surfaceContainerLow = SurfaceContainerLow,
+    surfaceContainerHigh = SurfaceContainerHigh,
+    surfaceBright = SurfaceBright,
+    error = Error,
+    outlineVariant = OutlineVariant,
+)
+
 @Composable
 fun WeatherAppComposeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -51,7 +67,7 @@ fun WeatherAppComposeTheme(
     }
 
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = CustomColourScheme,
         typography = Typography,
         content = content
     )
