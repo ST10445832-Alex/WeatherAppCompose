@@ -14,6 +14,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.example.weatherappcompose.navigation.Route
 import com.example.weatherappcompose.screen.HomeScreen
 import com.example.weatherappcompose.ui.theme.WeatherAppComposeTheme
+import com.example.weatherappcompose.viewmodel.DailyForecastsViewModel
 import com.example.weatherappcompose.viewmodel.WeatherViewModel
 
 class MainActivity : ComponentActivity() {
@@ -33,7 +34,7 @@ class MainActivity : ComponentActivity() {
                     ),
                     entryProvider = entryProvider {
                         entry<Route.Home> {
-                            HomeScreen(viewModel = viewModel(factory = WeatherViewModel.Factory()))
+                            HomeScreen(viewModel = viewModel(factory = DailyForecastsViewModel.Factory()))
                         }
                     }
                 )
