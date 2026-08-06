@@ -1,6 +1,6 @@
 package com.example.weatherappcompose.ui.components
 
-import android.graphics.drawable.Icon
+import com.example.weatherappcompose.util.Helpers
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -8,33 +8,26 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.weatherappcompose.R
 import com.example.weatherappcompose.ui.theme.OnPrimary
-import com.example.weatherappcompose.ui.theme.PrimaryFixedDim
 import com.example.weatherappcompose.viewmodel.DailyForecastsViewModel
 import com.example.weatherappcompose.viewmodel.WeatherUiState
+import java.time.OffsetDateTime
 
 @Composable
 fun OneDayForecastTabContent(viewmodel: DailyForecastsViewModel) {
@@ -43,13 +36,14 @@ fun OneDayForecastTabContent(viewmodel: DailyForecastsViewModel) {
     when(uiState.value) {
         is WeatherUiState.Loading -> Text("Loading")
         is WeatherUiState.Error -> Text("Error")
-        else -> SuccessContent(uiState.value as WeatherUiState.Success)
+        else -> SuccessContent(uiState.value as WeatherUiState.SuccessCurrent)
     }
 }
 
 @Composable
-private fun SuccessContent(uiState: WeatherUiState.Success) {
-    val forecast = uiState.forecast?.DailyForecasts[0]
+private fun SuccessContent(uiState: WeatherUiState.SuccessCurrent) {
+    val forecast = uiState.forecast
+
     Box(
         modifier = Modifier
             .border(2.dp, MaterialTheme.colorScheme.onPrimary, RoundedCornerShape(8.dp))
@@ -72,8 +66,8 @@ private fun SuccessContent(uiState: WeatherUiState.Success) {
             ) {
                 // icon
                 Image(
-                    painterResource(R.drawable.cloudy),
-                    contentDescription = forecast?.Day?.IconPhrase,
+                    painterResource(Helpers.getWeatherIconResourceId(forecast?.WeatherIcon)),
+                    contentDescription = forecast?.WeatherText,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary),
                     modifier = Modifier
                         .size(32.dp)
@@ -81,8 +75,9 @@ private fun SuccessContent(uiState: WeatherUiState.Success) {
 
                 // description
                 Text(
-                    "${forecast?.Day?.IconPhrase}",
-                    style = MaterialTheme.typography.headlineLarge,
+                    "${forecast?.WeatherText}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.ExtraBold,
                     color = OnPrimary,
                     textAlign = TextAlign.End,
                     modifier = Modifier
@@ -108,13 +103,13 @@ private fun SuccessContent(uiState: WeatherUiState.Success) {
                         verticalAlignment = Alignment.Bottom
                     ) {
                         Text(
-                            "${forecast?.Temperature?.Maximum?.Value}",
+                            "${forecast?.Temperature?.Metric?.Value}",
                             style = MaterialTheme.typography.titleLarge,
                             color = OnPrimary
                         )
 
                         Text(
-                            "${forecast?.Temperature?.Maximum?.Unit}",
+                            "${forecast?.Temperature?.Metric?.Unit}",
                             style = MaterialTheme.typography.titleLarge.copy(fontSize = 48.sp),
                             color = OnPrimary,
                             modifier = Modifier
@@ -129,15 +124,16 @@ private fun SuccessContent(uiState: WeatherUiState.Success) {
                     modifier = Modifier
                         .padding(12.dp)
                 ) {
-                    // low - high
+                    // Date
+                    val dateTime = OffsetDateTime.parse(forecast?.LocalObservationDateTime)
                     Text(
-                        "HI ${forecast?.Temperature?.Maximum?.Value}°",
-                        style = MaterialTheme.typography.headlineLarge,
+                        "${dateTime.dayOfWeek}",
+                        style = MaterialTheme.typography.bodyLarge,
                         color = OnPrimary
                     )
 
                     Text(
-                        "Lo ${forecast?.Temperature?.Minimum?.Value}°",
+                        "${dateTime.hour}:${dateTime.minute}",
                         style = MaterialTheme.typography.headlineLarge,
                         color = OnPrimary
                     )

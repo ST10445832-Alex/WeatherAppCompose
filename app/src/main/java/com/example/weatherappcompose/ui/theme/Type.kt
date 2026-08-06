@@ -19,11 +19,15 @@ val SpaceMono = FontFamily(
     Font(R.font.space_mono_bold, FontWeight.Bold)
 )
 
+val LCD = FontFamily(
+    Font(R.font.lcd, FontWeight.Normal)
+)
+
 val Typography = Typography(
     labelLarge = TextStyle(
-        fontFamily = SpaceMono,
+        fontFamily = LCD,
         fontSize = 12.sp,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.Normal,
         letterSpacing = 1.sp
     ),
     headlineLarge = TextStyle(
@@ -39,7 +43,7 @@ val Typography = Typography(
         letterSpacing = 2.sp
     ),
     bodyLarge = TextStyle(
-        fontFamily = SpaceMono,
+        fontFamily = LCD,
         fontSize = 18.sp,
         fontWeight = FontWeight.Normal,
         letterSpacing = 2.sp

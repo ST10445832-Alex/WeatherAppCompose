@@ -21,12 +21,12 @@ fun FiveDayForecastTabContent(viewmodel: DailyForecastsViewModel) {
     when(uiState.value) {
         is WeatherUiState.Loading -> Text("Loading")
         is WeatherUiState.Error -> Text("Error")
-        else -> SuccessContent(uiState.value as WeatherUiState.Success)
+        else -> SuccessContent(uiState.value as WeatherUiState.SuccessFiveDay)
     }
 }
 
 @Composable
-private fun SuccessContent(uiState: WeatherUiState.Success) {
+private fun SuccessContent(uiState: WeatherUiState.SuccessFiveDay) {
     val forecast = uiState.forecast?.DailyForecasts
 
     LazyColumn(

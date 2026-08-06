@@ -1,5 +1,6 @@
 package com.example.weatherappcompose.data
 
+import com.example.weatherappcompose.model.CurrentConditions
 import com.example.weatherappcompose.model.FiveDayForecastResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -13,4 +14,10 @@ interface IAccuWeather {
         @Query("apikey") apiKey: String?,
         @Query("metric") metric: Boolean
     ) : FiveDayForecastResponse?
+
+    @GET("currentconditions/v1/{locationKey}")
+    suspend fun getCurrentConditions(
+        @Path("locationKey") locationKey: String?,
+        @Query("apikey") apiKey: String?
+    ) : List<CurrentConditions>?
 }

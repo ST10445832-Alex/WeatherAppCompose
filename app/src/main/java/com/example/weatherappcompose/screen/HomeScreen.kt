@@ -43,7 +43,10 @@ fun HomeScreen(
                 AccuWeatherLogo()
                 TabView(
                     selectedTab = selectedTab,
-                    onTabClick = { selectedTab = it },
+                    onTabClick = {
+                        selectedTab = it
+                        viewModel.fetchWeather(selectedTab.ordinal)
+                    },
                 )
             }
         }
