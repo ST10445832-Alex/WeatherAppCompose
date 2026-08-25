@@ -14,16 +14,21 @@ import androidx.navigation3.ui.NavDisplay
 import com.example.weatherappcompose.navigation.Route
 import com.example.weatherappcompose.screen.HomeScreen
 import com.example.weatherappcompose.ui.theme.WeatherAppComposeTheme
-import com.example.weatherappcompose.viewmodel.DailyForecastsViewModel
-import com.example.weatherappcompose.viewmodel.WeatherViewModel
+import com.example.weatherappcompose.viewmodel.AccuWeatherViewModel
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 
 class MainActivity : ComponentActivity() {
+    private var fusedLocationProviderClient: FusedLocationProviderClient? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+
         setContent {
             val backStack = remember { mutableStateListOf<Route>(Route.Home) }
-
             WeatherAppComposeTheme {
                 NavDisplay(
                     backStack = backStack,
@@ -34,7 +39,9 @@ class MainActivity : ComponentActivity() {
                     ),
                     entryProvider = entryProvider {
                         entry<Route.Home> {
-                            HomeScreen(viewModel = viewModel(factory = DailyForecastsViewModel.Factory()))
+                            HomeScreen(
+                                viewModel = viewModel(factory = AccuWeatherViewModel.Factory(fusedLocationProviderClient))
+                            )
                         }
                     }
                 )

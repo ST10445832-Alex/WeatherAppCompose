@@ -1,6 +1,10 @@
 package com.example.weatherappcompose.viewmodel
 
+import android.location.Location
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -30,6 +34,9 @@ sealed interface WeatherUiStateDeprecated {
 class WeatherViewModel : ViewModel() {
     private val _weatherUiState = MutableStateFlow<WeatherUiStateDeprecated>(WeatherUiStateDeprecated.Loading)
     val weatherUiState: StateFlow<WeatherUiStateDeprecated> = _weatherUiState.asStateFlow()
+
+    var currentLocation by mutableStateOf<Location?>(null)
+        private set
 
     init {
         loadWeatherData()
@@ -70,6 +77,15 @@ class WeatherViewModel : ViewModel() {
             Log.e("WeatherViewModel", "Failure: ${e.toString()}")
             return ""
         }
+    }
+
+    fun updateLocation(location: Location) {
+        currentLocation = location
+        fetchWeatherForLocation(location.latitude, location.longitude)
+    }
+
+    private fun fetchWeatherForLocation(latitude: Double, longitude: Double) {
+        // retrofit call to accuweather
     }
 
     class Factory(

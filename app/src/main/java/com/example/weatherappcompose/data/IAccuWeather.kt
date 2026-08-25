@@ -2,6 +2,7 @@ package com.example.weatherappcompose.data
 
 import com.example.weatherappcompose.model.CurrentConditions
 import com.example.weatherappcompose.model.FiveDayForecastResponse
+import com.example.weatherappcompose.model.WeatherLocation
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -20,4 +21,12 @@ interface IAccuWeather {
         @Path("locationKey") locationKey: String?,
         @Query("apikey") apiKey: String?
     ) : List<CurrentConditions>?
+
+    @GET("locations/v1/geoposition/search")
+    suspend fun getLocationKey(
+        @Query("q") q: String?,
+        @Query("apikey") apiKey: String?
+    ) : List<WeatherLocation>?
+
+
 }

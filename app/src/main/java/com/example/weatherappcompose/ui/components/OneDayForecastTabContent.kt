@@ -25,12 +25,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.weatherappcompose.ui.theme.OnPrimary
-import com.example.weatherappcompose.viewmodel.DailyForecastsViewModel
+import com.example.weatherappcompose.viewmodel.AccuWeatherViewModel
 import com.example.weatherappcompose.viewmodel.WeatherUiState
 import java.time.OffsetDateTime
 
 @Composable
-fun OneDayForecastTabContent(viewmodel: DailyForecastsViewModel) {
+fun OneDayForecastTabContent(viewmodel: AccuWeatherViewModel) {
     val uiState = viewmodel.weatherUiState.collectAsStateWithLifecycle()
 
     when(uiState.value) {

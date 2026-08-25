@@ -3,11 +3,11 @@ package com.example.weatherappcompose.ui.components
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.weatherappcompose.viewmodel.DailyForecastsViewModel
+import com.example.weatherappcompose.viewmodel.AccuWeatherViewModel
 import com.example.weatherappcompose.viewmodel.WeatherUiState
 
 @Composable
-fun CityWeatherTabContent(viewmodel: DailyForecastsViewModel) {
+fun CityWeatherTabContent(viewmodel: AccuWeatherViewModel) {
     val uiState = viewmodel.weatherUiState.collectAsStateWithLifecycle()
 
     // TODO city name input

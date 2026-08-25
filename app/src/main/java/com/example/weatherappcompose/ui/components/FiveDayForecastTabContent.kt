@@ -11,11 +11,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.weatherappcompose.viewmodel.DailyForecastsViewModel
+import com.example.weatherappcompose.viewmodel.AccuWeatherViewModel
 import com.example.weatherappcompose.viewmodel.WeatherUiState
 
 @Composable
-fun FiveDayForecastTabContent(viewmodel: DailyForecastsViewModel) {
+fun FiveDayForecastTabContent(viewmodel: AccuWeatherViewModel) {
     val uiState = viewmodel.weatherUiState.collectAsStateWithLifecycle()
 
     when(uiState.value) {
