@@ -11,6 +11,8 @@ import com.example.weatherappcompose.R
 import com.example.weatherappcompose.data.RetrofitClient
 import com.example.weatherappcompose.model.CurrentConditions
 import com.example.weatherappcompose.model.FiveDayForecastResponse
+import com.example.weatherappcompose.model.TopCity
+import com.example.weatherappcompose.model.WeatherLocation
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -25,12 +27,21 @@ import kotlin.coroutines.resumeWithException
 
 sealed interface WeatherUiState {
     data object Loading : WeatherUiState
-    data class SuccessFiveDay(val forecast: FiveDayForecastResponse?) : WeatherUiState
+    data class SuccessFiveDay(
+        val forecast: FiveDayForecastResponse?,
+        val locationData: WeatherLocation?
+    ) : WeatherUiState
     data class SuccessCurrent(
         val forecast: CurrentConditions?,
+        val locationData: WeatherLocation?,
         var hasLocationPermission: Boolean
     ) : WeatherUiState
-    data class SuccessCity(val forecast: CurrentConditions?) : WeatherUiState
+    data class SuccessCity(
+        val cities: List<TopCity>?,
+        val filteredCities: List<TopCity>?,
+        val selectedCityInfo: TopCity? = null,
+        val selectedCityConditions: CurrentConditions? = null
+    ) : WeatherUiState
     data class Error(val errorMessageId: Int) : WeatherUiState
 }
 
@@ -41,29 +52,35 @@ class AccuWeatherViewModel(
 
     var weatherUiState: StateFlow<WeatherUiState> = _weatherUiState.asStateFlow()
 
-    init {
-        fetchWeather(0)
-    }
-
     fun fetchWeather(route: Int) {
         when(route) {
             0 -> getCurrentConditionsForLocation()
-            1 -> getFiveDayForecast("306633")
-            else -> getFiveDayForecast("306633")
+            1 -> getFiveDayForecast()
+            2 -> getTopCitiesConditions()
+            else -> getFiveDayForecast()
         }
     }
 
-    fun getFiveDayForecast(locationKey: String) {
+    fun getFiveDayForecast() {
         viewModelScope.launch {
             _weatherUiState.value = WeatherUiState.Loading
             try {
+                val geolocation = getCurrentLocation()
+                val coordinates = "${geolocation.latitude},${geolocation.longitude}"
+                val weatherLocation = RetrofitClient.weatherService?.getLocationKey(
+                    q = coordinates,
+                    apiKey = BuildConfig.ACCUWEATHER_API_KEY
+                )
                 val weatherData = RetrofitClient.weatherService?.
                     getFiveDayForecast(
-                        locationKey = locationKey,
+                        locationKey = weatherLocation?.firstOrNull()?.Key,
                         apiKey = BuildConfig.ACCUWEATHER_API_KEY,
                         metric = true
                     )
-                _weatherUiState.value = WeatherUiState.SuccessFiveDay(weatherData)
+                _weatherUiState.value = WeatherUiState.SuccessFiveDay(
+                    weatherData,
+                    locationData = weatherLocation?.firstOrNull()
+                )
             } catch (e: Exception) {
                 _weatherUiState.value = WeatherUiState.Error(
                     R.string.weather_data_load_error
@@ -112,21 +129,22 @@ class AccuWeatherViewModel(
         viewModelScope.launch {
             _weatherUiState.value = WeatherUiState.Loading
             try {
-                val location = getCurrentLocation()
-                val coordinates = "${location.latitude},${location.longitude}"
-                val locationKey = RetrofitClient.weatherService?.getLocationKey(
+                val geolocation = getCurrentLocation()
+                val coordinates = "${geolocation.latitude},${geolocation.longitude}"
+                val weatherLocation = RetrofitClient.weatherService?.getLocationKey(
                     q = coordinates,
                     apiKey = BuildConfig.ACCUWEATHER_API_KEY
                 )
 
                 val currentConditions = RetrofitClient.weatherService?.getCurrentConditions(
-                    locationKey = locationKey?.firstOrNull()?.Key,
+                    locationKey = weatherLocation?.firstOrNull()?.Key,
                     apiKey = BuildConfig.ACCUWEATHER_API_KEY
                 )
 
                 _weatherUiState.value = WeatherUiState.SuccessCurrent(
                     forecast = currentConditions?.firstOrNull(),
-                    hasLocationPermission = true
+                    hasLocationPermission = true,
+                    locationData = weatherLocation?.firstOrNull()
                 )
             } catch (exception: Exception) {
                 _weatherUiState.value = WeatherUiState.Error(
@@ -134,7 +152,72 @@ class AccuWeatherViewModel(
                 )
                 Log.e("AccuWeatherViewModel", "Error fetching location: ${exception.message}")
             }
+        }
+    }
 
+    fun getTopCitiesConditions() {
+        viewModelScope.launch {
+            _weatherUiState.value = WeatherUiState.Loading
+
+            try {
+                val topCityConditions = RetrofitClient.weatherService?.getTopCitiesConditions(
+                    apiKey = BuildConfig.ACCUWEATHER_API_KEY
+                )
+
+                _weatherUiState.value = WeatherUiState.SuccessCity(
+                    cities = topCityConditions,
+                    filteredCities = topCityConditions
+                )
+            } catch (exception: Exception) {
+                _weatherUiState.value = WeatherUiState.Error(
+                    R.string.weather_data_load_error
+                )
+                Log.e("AccuWeatherViewModel", "Error fetching location: ${exception.message}")
+            }
+        }
+    }
+
+    fun getCurrentConditionsByKey(key: String) {
+        viewModelScope.launch {
+            try {
+                val currentConditions = RetrofitClient.weatherService?.getCurrentConditions(
+                    key,
+                    apiKey = BuildConfig.ACCUWEATHER_API_KEY
+                )?.firstOrNull()
+
+                _weatherUiState.update { currentState ->
+                    if (currentState is WeatherUiState.SuccessCity) {
+                        val cityInfo = currentState.cities?.find { it.Key == key }
+                        currentState.copy(
+                            selectedCityInfo = cityInfo,
+                            selectedCityConditions = currentConditions
+                        )
+                    } else {
+                        currentState
+                    }
+                }
+            } catch (exception: Exception) {
+                Log.e("AccuWeatherViewModel", "Error fetching conditions by key: ${exception.message}")
+            }
+        }
+    }
+
+    fun filterTopCities(filter: String) {
+        _weatherUiState.update { currentState ->
+            when (currentState) {
+                is WeatherUiState.SuccessCity -> {
+                    currentState.copy(
+                        filteredCities = if (filter.isBlank()) {
+                            currentState.cities
+                        } else {
+                            currentState.cities?.filter { city ->
+                                city.EnglishName?.startsWith(filter, ignoreCase = true) == true
+                            }
+                        }
+                    )
+                }
+                else -> currentState
+            }
         }
     }
 

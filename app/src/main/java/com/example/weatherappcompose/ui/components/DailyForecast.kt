@@ -34,7 +34,11 @@ fun DailyForecast(forecast: DailyForecasts) {
             .fillMaxWidth()
             .wrapContentHeight()
             .padding(4.dp)
-            .border(2.dp, MaterialTheme.colorScheme.onPrimary, RoundedCornerShape(8.dp))
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.onPrimary,
+                shape = RoundedCornerShape(2.dp)
+            )
             .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))
     ) {
         Row(

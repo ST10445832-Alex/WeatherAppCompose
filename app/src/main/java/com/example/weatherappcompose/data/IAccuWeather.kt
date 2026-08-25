@@ -2,6 +2,7 @@ package com.example.weatherappcompose.data
 
 import com.example.weatherappcompose.model.CurrentConditions
 import com.example.weatherappcompose.model.FiveDayForecastResponse
+import com.example.weatherappcompose.model.TopCity
 import com.example.weatherappcompose.model.WeatherLocation
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -28,5 +29,8 @@ interface IAccuWeather {
         @Query("apikey") apiKey: String?
     ) : List<WeatherLocation>?
 
-
+    @GET("currentconditions/v1/topcities/150")
+    suspend fun getTopCitiesConditions(
+        @Query("apikey") apiKey: String?
+    ): List<TopCity>?
 }
